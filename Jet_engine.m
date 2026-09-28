@@ -16,8 +16,8 @@ Tref=298.15;    % Reference Temperature
 kJ=1e3;kmol=1e3;dm=0.1;bara=1e5;kPa = 1000;kN=1000;kg=1;s=1;
 %% Given conditions. 
 %  For the final assignment take the ones from the specific case you are supposed to do.                  
-v1=200;Tamb=250;P3overP2=7;Pamb=45*kPa;mfurate=0.68*kg/s;AF=75;             % These are the ones from the book
-cFuel='Gasoline';                                                           % Pick Gasoline as the fuel (other choices check Sp.Name)
+v1=200;Tamb=250;P3overP2=7;Pamb=55*kPa;mfurate=0.68*kg/s;AF=102.78;
+cFuel='CH4';        
 %% Select species for the case at hand
 iSp = myfind({Sp.Name},{cFuel,'O2','CO2','H2O','N2'});                      % Find indexes of these species
 SpS=Sp(iSp);                                                                % Subselection of the database in the order according to {'Gasoline','O2','CO2','H2O','N2'}
@@ -177,3 +177,54 @@ S3 = s3thermal_check - Rg*log(P3/Pref);
 
 % Velocity is neglected through the compressor in this model.
 v3 = 0
+%% [3-4] Combustor
+
+sPart = 'Combustor';
+
+% Step 1: Determine the mass flow rates of air and fuel.
+% AF is defined as the air-fuel mass ratio.
+mdot_fuel = mfurate;
+mdot_air = AF*mdot_fuel;
+mdot4 = mdot_air + mdot_fuel;
+
+% Step 2: Determine the composition before combustion.
+% State 3 contains the incoming air together with the added fuel.
+Y3 = (mdot_air*Yair + mdot_fuel*Yfuel)/mdot4;
+
+% Step 3: Calculate the combustion products.
+% For methane complete combustion is:
+% CH4 + 2 O2 -> CO2 + 2 H2O
+%
+% Take 1 kg of fuel as basis.
+mfuel = 1;
+mair = AF*mfuel;
+
+% Convert the incoming masses to number of kmoles.
+nfuel = mfuel/Mi(1);
+nO2 = mair*Yair(2)/Mi(2);
+nN2 = mair*Yair(5)/Mi(5);
+
+% Complete combustion consumes 2 moles O2 for every mole CH4.
+nO2_used = 2*nfuel;
+nO2_left = nO2 - nO2_used;
+
+% Product composition in the same species order:
+% [CH4 O2 CO2 H2O N2]
+n4 = [0 nO2_left nfuel 2*nfuel nN2];
+
+% Convert product mole amounts back to mass fractions.
+m4 = n4.*Mi;
+Y4 = m4/sum(m4);
+
+% Step 4: Calculate the stoichiometric air-fuel ratio
+% and equivalence ratio.
+AFst = (2*Mi(2)/Mi(1))/Yair(2);
+phi = AFst/AF;
+
+% Step 5: Determine gas constants before and after combustion.
+% Rg changes because the mixture composition changes.
+M3 = 1/sum(Y3./Mi);
+M4 = 1/sum(Y4./Mi);
+
+Rg3 = Runiv/M3;
+Rg4 = Runiv/M4;
