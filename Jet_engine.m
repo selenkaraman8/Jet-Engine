@@ -177,6 +177,20 @@ S3 = s3thermal_check - Rg*log(P3/Pref);
 
 % Velocity is neglected through the compressor in this model.
 v3 = 0
+% Print compressor results
+fprintf('\n%14s\n',sPart);
+fprintf('Stage  ||%14s        [unit]\n      NR|%9i %9i\n',sPart,2,3);
+fprintf('-------------------------------------\n');
+fprintf('%8s| %9.2f %9.2f  [K]\n','Temp',T2,T3);
+fprintf('%8s| %9.2f %9.2f  [kPa]\n','Press',P2/kPa,P3/kPa);
+fprintf('%8s| %9.2f %9.2f  [m/s]\n','v',v2,v3);
+fprintf('---  H/S    -------------------------\n');
+fprintf('%8s| %9.2f %9.2f  [kJ/kg]\n','h',h2/kJ,h3/kJ);
+fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S2/kJ,S3/kJ);
+
+% Compressor specific work
+wc = h3-h2;
+fprintf('%8s| %9.2f            [kJ/kg]\n','wc',wc/kJ);
 %% [3-4] Combustor
 
 sPart = 'Combustor';
