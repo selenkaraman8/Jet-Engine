@@ -242,3 +242,26 @@ M4 = 1/sum(Y4./Mi);
 
 Rg3 = Runiv/M3;
 Rg4 = Runiv/M4;
+% Print mixture composition
+fprintf('\n-------------------------------------\n');
+fprintf('Combustor composition [3-4]\n');
+fprintf('-------------------------------------\n');
+fprintf('AF = %.2f\n',AF);
+fprintf('Equivalence ratio = %.4f\n',phi);
+
+fprintf('\nMass fractions before combustion:\n');
+fprintf('Fuel = %.6f\n',Y3(1));
+fprintf('O2   = %.6f\n',Y3(2));
+fprintf('CO2  = %.6f\n',Y3(3));
+fprintf('H2O  = %.6f\n',Y3(4));
+fprintf('N2   = %.6f\n',Y3(5));
+fprintf('Rg   = %.2f J/kg/K\n',Rg3);
+
+fprintf('\nMass fractions after combustion:\n');
+fprintf('Fuel = %.6f\n',Y4(1));
+fprintf('O2   = %.6f\n',Y4(2));
+fprintf('CO2  = %.6f\n',Y4(3));
+fprintf('H2O  = %.6f\n',Y4(4));
+fprintf('N2   = %.6f\n',Y4(5));
+fprintf('Rg   = %.2f J/kg/K\n',Rg4);
+fprintf('-------------------------------------\n');
