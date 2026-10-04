@@ -141,6 +141,14 @@ fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S1/kJ,S2/kJ);
 fprintf('----------------------------------------------\n%8s| %9.4f %9.4f  [K]\n----------------------------------------------\n','T2-int vs T2-bis',T2int,T2bis);
 %% Here starts your part (compressor,combustor,turbine and nozzle). ...
 % Make a choice for which type of solution method you want to use.
+
+
+
+
+
+
+
+
 %% [2-3] Compressor
 
 sPart = 'Compressor';
@@ -192,6 +200,13 @@ fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S2/kJ,S3/kJ);
 wc = h3-h2;
 fprintf('%8s| %9.2f            [kJ/kg]\n','wc',wc/kJ);
 %% [3-4] Combustor
+
+
+
+
+
+
+
 
 sPart = 'Combustor';
 
