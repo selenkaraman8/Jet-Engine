@@ -152,39 +152,49 @@ fprintf('----------------------------------------------\n%8s| %9.4f %9.4f  [K]\n
 %% [2-3] Compressor
 
 sPart = 'Compressor';
+% The compressor is treated as a steady, adiabatic and isentropic process.
+% Mass =  conserved, and entropy = constant, the energy balance relates the enthalpy rise to compressor work.
+% as instructed in the elcture, Poisson relations are not applied, since the air properties vary with temperature.
+% Instead, the entropy relation based on the NAS property(table) functions is applied.
 
-% Step 1: Determine the compressor outlet pressure.
-% For Group 96 the prescribed pressure ratio P3/P2 is 7.
-P3 = P2 * P3overP2;
+% Step 1: Determining the compressor outlet pressure.
 
-% Step 2: Compression from state 2 to state 3 is isentropic.
-% Therefore S3 = S2.
-%
+P3 = P2 * P3overP2;      % The compressor pressure ratio P3/P2 is taken from the group table(7).
+
+
+
+% Step 2: Determining the required thermal entropy contribution at state 3.
+% sThermalAir gives the htermal entropy of the air mixture at a given temperature
+
+sThermalAir = @(T) sum(Yair .* arrayfun(@(k) SNasa(T, SpS(k), 1:NSp));    % this function allows the mixture entropy to be evaluated directly at any T 
+s2th = sThermalAir(T2);     % evaluating the thermal entropy of the air mixture directly at the inlet tmeperature T2
+
 % Using:
-% s3thermal - s2thermal = Rg*ln(P3/P2)
-%
-% determine the required thermal entropy contribution at state 3.
-s3thermal = s2thermal + Rg*log(P3/P2);
+% (Recall) Isentropic compressor --> S3 = S2.
+% s3thermal - s2th = Rg*ln(P3/P2)
+s3thermal = s2th + Rg*log(P3/P2);    % this function gives the required thermal entropy at state 3
 
-% Step 3: Find the compressor outlet temperature corresponding
-% to this thermal entropy using the NASA air-property data.
-T3 = interp1(sair_a,TR,s3thermal);
+% Step 3: Finding the compressor outlet temperature corresponding NASA table
+T3guess = interp1(sair_a,TR,s3thermal);    % this functions gives an initial estimate of T3 from the NASA table
+T3 = fzero(@(T) sThermalAir(T) - s3thermal, T3guess);  %solves the entrpy equation directly, avoiding interpolation grid error
 
-% Step 4: Calculate the enthalpy of each species at T3.
+
+
+% Step 4: Calculating the enthalpy of each species at T3.
 for i = 1:NSp
     hi3(i) = HNasa(T3,SpS(i));
     si3(i) = SNasa(T3,SpS(i));
 end
 
-% Calculate the enthalpy of the air mixture at compressor outlet.
-h3 = Yair*hi3';
-
-% Calculate total specific entropy as a consistency check.
-s3thermal_check = Yair*si3';
+h3 = Yair*hi3';         % the species' values are combined using the air mass fractions Yair
+s3thermal_check = Yair*si3';     % Calculating total specific entropy as a consistency check.
+entropyErr = s3thermal_check - s3thermal;   %checks whether the calculated mxture entropy matches the target entropy
 S3 = s3thermal_check - Rg*log(P3/Pref);
+dS = S3 - S2;   % checks the total entropy change across the compressor and should be close to zero for an isentropic stage.
+                % A significant value would indicate a calculation inconsistency
+v3 = 0     % the compressor velocity is neglected, so outlet velocity is set to zero
 
-% Velocity is neglected through the compressor in this model.
-v3 = 0
+
 % Print compressor results
 fprintf('\n%14s\n',sPart);
 fprintf('Stage  ||%14s        [unit]\n      NR|%9i %9i\n',sPart,2,3);
@@ -194,19 +204,25 @@ fprintf('%8s| %9.2f %9.2f  [kPa]\n','Press',P2/kPa,P3/kPa);
 fprintf('%8s| %9.2f %9.2f  [m/s]\n','v',v2,v3);
 fprintf('---  H/S    -------------------------\n');
 fprintf('%8s| %9.2f %9.2f  [kJ/kg]\n','h',h2/kJ,h3/kJ);
-fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S2/kJ,S3/kJ);
+fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S2/kJ,S3/kJ); 
+
+fprintf('%8s\ %9.2e      [J/kg/K]  (S3-S2, should be ~0)|n','dS',dS);
 
 % Compressor specific work
+% from the steady-flow energy balance for an adiabatic compressor,
+% the compressor work input per unit mass is wc = h3 - h2
 wc = h3-h2;
 fprintf('%8s| %9.2f            [kJ/kg]\n','wc',wc/kJ);
+
+
+
+
+
+
+
+
+
 %% [3-4] Combustor
-
-
-
-
-
-
-
 
 sPart = 'Combustor';
 
