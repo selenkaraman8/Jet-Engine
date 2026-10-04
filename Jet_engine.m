@@ -315,3 +315,94 @@ fprintf('%8s| %9.2f %9.2f  [m/s]\n','v',v3,v4);
 fprintf('---  H/S    -------------------------\n');
 fprintf('%8s| %9.2f %9.2f  [kJ/kg]\n','h',h3/kJ,h4/kJ);
 fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S3/kJ,S4/kJ);
+
+%% [4-5] Turbine
+
+sPart = 'Turbine';
+
+% Step 1: Compressor power requirement.
+% wc is the compressor specific work [J/kg] and wc is h3 - h2.
+% Only air flows through the compressor.
+Wcomp = mdot_air * wc;
+
+% Step 2: Determine the mass flow through the turbine.
+% After the combustor, since there is added fuel,both air and fuel products pass through the turbine.
+mdot_turbine = mdot_air + mdot_fuel;
+
+% Step 3: Apply shaft-work balance.
+% The power supplied by turbine is the power required by the compressor.
+% Gas loses energy at turbine so h5<h4.
+%
+% Wturbine = Wcomp
+%
+% mdot_turbine*(h4-h5) = Wcomp
+%
+% Therefore:
+% h5 = h4 - Wcomp/mdot_turbine
+
+h5 = h4 - Wcomp/mdot_turbine;
+
+% Step 4: Calculate the enthalpy of the product mixture
+% over the temperature range.
+% The turbine contains the same product mixture as state 4.
+
+hprod_a = zeros(1,NTR);
+
+for i = 1:NSp
+    hprod_a = hprod_a + Y4(i)*hia(:,i)';
+end
+
+% Step 5: Find turbine outlet temperature from h5.
+T5 = interp1(hprod_a,TR,h5);
+
+% Step 6: Calculate entropy properties at state 5.
+for i = 1:NSp
+    hi5(i) = HNasa(T5,SpS(i));
+    si5(i) = SNasa(T5,SpS(i));
+end
+
+% Enthalpy check.
+h5check = Y4*hi5';
+
+% Thermal entropy of product mixture at state 5.
+s5thermal = Y4*si5';
+
+% Step 7: Turbine is assumed isentropic.
+% Therefore:
+%
+% S5 = S4
+%
+% S = s_thermal - Rg*ln(P/Pref)
+%
+% This gives:
+%
+% ln(P5/P4) = (s5thermal-s4thermal)/Rg4
+
+lnP5P4 = (s5thermal-s4thermal)/Rg4;
+
+P5 = P4*exp(lnP5P4);
+
+% Total entropy at state 5, used as a consistency check.
+S5 = s5thermal - Rg4*log(P5/Pref);
+
+% Velocity is neglected through the turbine.
+v5 = 0;
+
+% Print turbine results.
+fprintf('\n%14s\n',sPart);
+fprintf('Stage  ||%14s        [unit]\n      NR|%9i %9i\n',sPart,4,5);
+fprintf('-------------------------------------\n');
+
+fprintf('%8s| %9.2f %9.2f  [K]\n','Temp',T4,T5);
+fprintf('%8s| %9.2f %9.2f  [kPa]\n','Press',P4/kPa,P5/kPa);
+fprintf('%8s| %9.2f %9.2f  [m/s]\n','v',v4,v5);
+
+fprintf('---  H/S    -------------------------\n');
+
+fprintf('%8s| %9.2f %9.2f  [kJ/kg]\n','h',h4/kJ,h5/kJ);
+fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S4/kJ,S5/kJ);
+
+fprintf('-------------------------------------\n');
+
+fprintf('%8s| %9.2f            [kW]\n','Wcomp',Wcomp/kJ);
+
