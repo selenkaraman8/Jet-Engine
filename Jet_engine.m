@@ -142,13 +142,6 @@ fprintf('----------------------------------------------\n%8s| %9.4f %9.4f  [K]\n
 %% Here starts your part (compressor,combustor,turbine and nozzle). ...
 % Make a choice for which type of solution method you want to use.
 
-
-
-
-
-
-
-
 %% [2-3] Compressor
 
 sPart = 'Compressor';
@@ -220,12 +213,10 @@ fprintf('%8s| %9.2f            [kJ/kg]\n','wc',wc/kJ);
 
 
 
-
-
 %% [3-4] Combustor
 
+%% [3-4] Combustor
 sPart = 'Combustor';
-
 % Step 1: Determine the mass flow rates of air and fuel.
 % AF is defined as the air-fuel mass ratio.
 mdot_fuel = mfurate;
@@ -296,3 +287,54 @@ fprintf('H2O  = %.6f\n',Y4(4));
 fprintf('N2   = %.6f\n',Y4(5));
 fprintf('Rg   = %.2f J/kg/K\n',Rg4);
 fprintf('-------------------------------------\n');
+% Step 6: Assume no pressure loss through the combustor.
+P4 = P3;
+
+% Step 7: Determine the enthalpy of the fuel entering the combustor.
+% Fuel enters at the reference temperature.
+hfuel = HNasa(Tref,SpS(1));
+
+% Step 8: Apply energy conservation over the combustor.
+% Energy entering with the air and fuel equals the energy
+% leaving with the combustion products.
+H4 = mdot_air*h3 + mdot_fuel*hfuel;
+h4 = H4/mdot4;
+
+% Step 9: Calculate the enthalpy of the product mixture
+% over the complete temperature range.
+hprod_a = zeros(1,NTR);
+
+for i = 1:NSp
+    hprod_a = hprod_a + Y4(i)*hia(:,i)';
+end
+
+% Step 10: Find the combustor outlet temperature.
+% Interpolate the NASA product enthalpy data to find T4.
+T4 = interp1(hprod_a,TR,h4);
+
+% Step 11: Calculate the properties at state 4.
+for i = 1:NSp
+    hi4(i) = HNasa(T4,SpS(i));
+    si4(i) = SNasa(T4,SpS(i));
+end
+
+% Check the calculated product enthalpy.
+h4check = Y4*hi4';
+
+% Calculate thermal and total entropy at state 4.
+s4thermal = Y4*si4';
+S4 = s4thermal - Rg4*log(P4/Pref);
+
+% Velocity is neglected through the combustor.
+v4 = 0;
+
+% Print combustor results.
+fprintf('\n%14s\n',sPart);
+fprintf('Stage  ||%14s        [unit]\n      NR|%9i %9i\n',sPart,3,4);
+fprintf('-------------------------------------\n');
+fprintf('%8s| %9.2f %9.2f  [K]\n','Temp',T3,T4);
+fprintf('%8s| %9.2f %9.2f  [kPa]\n','Press',P3/kPa,P4/kPa);
+fprintf('%8s| %9.2f %9.2f  [m/s]\n','v',v3,v4);
+fprintf('---  H/S    -------------------------\n');
+fprintf('%8s| %9.2f %9.2f  [kJ/kg]\n','h',h3/kJ,h4/kJ);
+fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S3/kJ,S4/kJ);
