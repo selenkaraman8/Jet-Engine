@@ -428,4 +428,28 @@ fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S4/kJ,S5/kJ);
 fprintf('-------------------------------------\n');
 
 fprintf('%8s| %9.2f            [kW]\n','Wcomp',Wcomp/kJ);
+%% [5-6] Nozzle
 
+sPart='Nozzle';
+
+P6=Pamb;
+
+s6target=S5+Rg4*log(P6/Pref);
+
+sprod_a=zeros(1,NTR);
+for i=1:NSp
+    sprod_a=sprod_a+Y4(i)*sia(:,i)';
+end
+
+T6=interp1(sprod_a,TR,s6target);
+
+for i=1:NSp
+    hi6(i)=HNasa(T6,SpS(i));
+    si6(i)=SNasa(T6,SpS(i));
+end
+
+h6=Y4*hi6';
+s6thermal=Y4*si6';
+S6=s6thermal-Rg4*log(P6/Pref);
+
+v6=sqrt(v5^2+2*(h5-h6));
