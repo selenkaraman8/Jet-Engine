@@ -439,3 +439,19 @@ s6thermal=Y4*si6';
 S6=s6thermal-Rg4*log(P6/Pref);
 
 v6=sqrt(v5^2+2*(h5-h6));
+
+% Print nozzle results.
+
+fprintf('\n%14s\n',sPart);
+fprintf('Stage  ||%14s        [unit]\n',sPart);
+fprintf('     NR|%9i %9i\n',5,6);
+fprintf('-------------------------------------\n');
+
+fprintf('%8s| %9.2f %9.2f  [K]\n','Temp',T5,T6);
+fprintf('%8s| %9.2f %9.2f  [kPa]\n','Press',P5/kPa,P6/kPa);
+fprintf('%8s| %9.2f %9.2f  [m/s]\n','v',v5,v6);
+
+fprintf('--- H/S -----------------------------\n');
+
+fprintf('%8s| %9.2f %9.2f  [kJ/kg]\n','h',h5/kJ,h6/kJ);
+fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S5/kJ,S6/kJ);
