@@ -414,44 +414,49 @@ fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S4/kJ,S5/kJ);
 fprintf('-------------------------------------\n');
 
 fprintf('%8s| %9.2f            [kW]\n','Wcomp',Wcomp/kJ);
+
+
 %% [5-6] Nozzle
 
 sPart='Nozzle';
 
+% Outlet pressure
 P6=Pamb;
 
+% Isentropic condition
 s6target=S5+Rg4*log(P6/Pref);
 
+% Product entropy table
 sprod_a=zeros(1,NTR);
 for i=1:NSp
-    sprod_a=sprod_a+Y4(i)*sia(:,i)';
+ sprod_a=sprod_a+Y4(i)*sia(:,i)';
 end
 
+% Outlet temperature
 T6=interp1(sprod_a,TR,s6target);
 
+% Species properties
 for i=1:NSp
-    hi6(i)=HNasa(T6,SpS(i));
-    si6(i)=SNasa(T6,SpS(i));
+ hi6(i)=HNasa(T6,SpS(i));
+ si6(i)=SNasa(T6,SpS(i));
 end
 
+% Mixture properties
 h6=Y4*hi6';
 s6thermal=Y4*si6';
 S6=s6thermal-Rg4*log(P6/Pref);
 
+% Exit velocity
 v6=sqrt(v5^2+2*(h5-h6));
 
-% Print nozzle results.
-
+% Results
 fprintf('\n%14s\n',sPart);
 fprintf('Stage  ||%14s        [unit]\n',sPart);
 fprintf('     NR|%9i %9i\n',5,6);
 fprintf('-------------------------------------\n');
-
 fprintf('%8s| %9.2f %9.2f  [K]\n','Temp',T5,T6);
 fprintf('%8s| %9.2f %9.2f  [kPa]\n','Press',P5/kPa,P6/kPa);
 fprintf('%8s| %9.2f %9.2f  [m/s]\n','v',v5,v6);
-
 fprintf('--- H/S -----------------------------\n');
-
 fprintf('%8s| %9.2f %9.2f  [kJ/kg]\n','h',h5/kJ,h6/kJ);
 fprintf('%8s| %9.2f %9.2f  [kJ/kg/K]\n','Total S',S5/kJ,S6/kJ);
